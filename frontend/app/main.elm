@@ -87,7 +87,7 @@ renderPage model =
                 [ text "Conjuring spellings" ]
 
         Spelling spellingData ->
-            div [] (List.map (\s -> text s) spellingData.spellings)
+            div [] (List.map (\s -> text (s ++ " ")) spellingData.spellings)
 
         Error errorMessage ->
             div [] [ text ("Error: " ++ errorMessage) ]
