@@ -4,6 +4,7 @@ import Html exposing (Html, div, button, h1, text)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
+import List.Extra as ListE
 
 
 main =
@@ -23,11 +24,12 @@ type Page
     = Home
     | LoadingSpellings
     | Spelling SpellingData
+    | SpellingCompleted
     | Error String
 
 
 type alias SpellingData =
-    { spellings : List String }
+    { spellings : List String, currentSpellingIndex : Int }
 
 
 init : ( Model, Cmd Msg )
@@ -38,6 +40,7 @@ init =
 type Msg
     = StartSpelling
     | SpellingsLoaded (Result Http.Error SpellingData)
+    | NextSpelling SpellingData
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,6 +57,16 @@ update msg model =
                 Err error ->
                     ( { model | currentPage = Error (toString error) }, Cmd.none )
 
+        NextSpelling ({ spellings, currentSpellingIndex } as spellingData) ->
+            let
+                nextSpellingIndex =
+                    currentSpellingIndex + 1
+            in
+                if nextSpellingIndex < List.length spellings then
+                    ( { model | currentPage = Spelling { spellingData | currentSpellingIndex = nextSpellingIndex } }, Cmd.none )
+                else
+                    ( { model | currentPage = SpellingCompleted }, Cmd.none )
+
 
 loadSpellings : Cmd Msg
 loadSpellings =
@@ -62,7 +75,7 @@ loadSpellings =
 
 decodeSpellingsData : Decode.Decoder SpellingData
 decodeSpellingsData =
-    Decode.map SpellingData (Decode.list Decode.string)
+    Decode.map (\x -> SpellingData x 0) (Decode.list Decode.string)
 
 
 view : Model -> Html Msg
@@ -86,8 +99,14 @@ renderPage model =
             div []
                 [ text "Conjuring spellings" ]
 
-        Spelling spellingData ->
-            div [] (List.map (\s -> text (s ++ " ")) spellingData.spellings)
+        Spelling ({ spellings, currentSpellingIndex } as spellingData) ->
+            div []
+                [ text (Maybe.withDefault "ERROR" <| ListE.getAt currentSpellingIndex spellings)
+                , button [ onClick <| NextSpelling spellingData ] [ text "Next" ]
+                ]
+
+        SpellingCompleted ->
+            div [] [ text "Well done, spellings completed" ]
 
         Error errorMessage ->
             div [] [ text ("Error: " ++ errorMessage) ]
