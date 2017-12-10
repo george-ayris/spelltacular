@@ -8,6 +8,7 @@ import List.Extra as ListE
 import Time
 import Task
 import Array
+import SpellingPage
 
 
 main =
@@ -20,42 +21,27 @@ main =
 
 
 type alias Model =
-    { currentPage : Page }
+    { currentPage : Page, spellingPageModel : SpellingPage.Model }
 
 
 type Page
     = Home
     | LoadingSpellings
-    | Spelling SpellingData
-    | SpellingCompleted SpellingData
+    | Spelling
+    | SpellingResults SpellingPage.SpellingsCompletedModel
     | Error String
-
-
-type Timing
-    = NoTimings
-    | StartTime Time.Time
-    | Difference Time.Time
-
-
-type alias SpellingWithTiming =
-    { spelling : String, timing : Timing }
-
-
-type alias SpellingData =
-    { spellings : Array.Array SpellingWithTiming, currentSpellingIndex : Int }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model Home, Cmd.none )
+    ( Model Home SpellingPage.initialModel, Cmd.none )
 
 
 type Msg
     = StartSpellings
-    | SpellingsLoaded (Result Http.Error SpellingData)
-    | SpellingStarted SpellingData Time.Time
-    | StopSpellingTimer SpellingData
-    | CorrectSpelling SpellingData Time.Time
+    | SpellingsLoaded (Result Http.Error (List String))
+    | SpellingPageMsg SpellingPage.Msg
+    | SpellingCompleted SpellingPage.SpellingsCompletedModel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,68 +52,26 @@ update msg model =
 
         SpellingsLoaded result ->
             case result of
-                Ok spellingData ->
-                    ( { model | currentPage = Spelling spellingData }, Task.perform (SpellingStarted spellingData) Time.now )
+                Ok spellings ->
+                    ( { model | currentPage = Spelling }, Task.perform (\t -> SpellingPageMsg (SpellingPage.start t spellings)) Time.now )
 
                 Err error ->
                     ( { model | currentPage = Error (toString error) }, Cmd.none )
 
-        SpellingStarted ({ spellings, currentSpellingIndex } as spellingData) now ->
+        SpellingPageMsg subMsg ->
             let
-                currentSpelling =
-                    Maybe.withDefault (SpellingWithTiming "Error" NoTimings) <| Array.get currentSpellingIndex spellings
-
-                newSpellings =
-                    Array.set currentSpellingIndex ({ currentSpelling | timing = StartTime now }) spellings
+                ( newSpellingPageModel, spellingPageCmd ) =
+                    SpellingPage.update subMsg model.spellingPageModel
             in
-                ( { model | currentPage = Spelling { spellingData | spellings = newSpellings } }, Cmd.none )
+                ( { model | spellingPageModel = newSpellingPageModel }, Cmd.map (SpellingPage.translator SpellingCompleted SpellingPageMsg) spellingPageCmd )
 
-        StopSpellingTimer spellingData ->
-            ( model, Task.perform (CorrectSpelling spellingData) Time.now )
-
-        CorrectSpelling ({ spellings, currentSpellingIndex } as spellingData) now ->
-            let
-                nextSpellingIndex =
-                    currentSpellingIndex + 1
-
-                currentSpelling =
-                    Maybe.withDefault (SpellingWithTiming "Error" NoTimings) <| Array.get currentSpellingIndex spellings
-
-                startTime =
-                    case currentSpelling.timing of
-                        NoTimings ->
-                            Time.second
-
-                        StartTime t ->
-                            t
-
-                        Difference t ->
-                            Time.second
-
-                newSpellings =
-                    Array.set currentSpellingIndex ({ currentSpelling | timing = Difference (now - startTime) }) spellings
-
-                newSpellingData =
-                    { spellingData | spellings = newSpellings, currentSpellingIndex = nextSpellingIndex }
-            in
-                if nextSpellingIndex < Array.length spellings then
-                    ( { model | currentPage = Spelling newSpellingData }, Task.perform (SpellingStarted newSpellingData) Time.now )
-                else
-                    ( { model | currentPage = SpellingCompleted newSpellingData }, Cmd.none )
+        SpellingCompleted completedModel ->
+            ( { model | currentPage = SpellingResults completedModel }, Cmd.none )
 
 
 loadSpellings : Cmd Msg
 loadSpellings =
-    Http.send SpellingsLoaded (Http.get "http://localhost:5000/spellings" decodeSpellingsData)
-
-
-decodeSpellingsData : Decode.Decoder SpellingData
-decodeSpellingsData =
-    let
-        mapStringToSpelling =
-            \string -> { spelling = string, timing = NoTimings }
-    in
-        Decode.map (\x -> SpellingData (Array.fromList <| List.map mapStringToSpelling x) 0) (Decode.list Decode.string)
+    Http.send SpellingsLoaded (Http.get "http://localhost:5000/spellings" (Decode.list Decode.string))
 
 
 view : Model -> Html Msg
@@ -151,30 +95,19 @@ renderPage model =
             div []
                 [ text "Conjuring spellings" ]
 
-        Spelling ({ spellings, currentSpellingIndex } as spellingData) ->
-            div []
-                [ text (Maybe.withDefault "ERROR" <| Maybe.map .spelling <| Array.get currentSpellingIndex spellings)
-                , button [ onClick <| StopSpellingTimer spellingData ] [ text "Next" ]
-                ]
+        Spelling ->
+            Html.map (SpellingPage.translator SpellingCompleted SpellingPageMsg) <| SpellingPage.view model.spellingPageModel
 
-        SpellingCompleted { spellings } ->
-            div [] [ text "Well done, spellings completed", div [] <| Array.toList <| Array.map getTimeDifference spellings ]
+        SpellingResults results ->
+            div [] [ text "Well done, spellings completed", div [] <| List.map renderResult results ]
 
         Error errorMessage ->
             div [] [ text ("Error: " ++ errorMessage) ]
 
 
-getTimeDifference : SpellingWithTiming -> Html Msg
-getTimeDifference s =
-    case s.timing of
-        NoTimings ->
-            div [] [ text "No timing" ]
-
-        StartTime _ ->
-            div [] [ text "Only start" ]
-
-        Difference d ->
-            div [] [ text (toString d) ]
+renderResult : { spelling : String, timeTaken : Time.Time } -> Html Msg
+renderResult { spelling, timeTaken } =
+    div [] [ text spelling, text (toString timeTaken) ]
 
 
 subscriptions : Model -> Sub Msg
