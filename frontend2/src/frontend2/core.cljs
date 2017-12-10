@@ -47,12 +47,15 @@
                 :onClick record-spelling-attempt}]])
 
 (defn spellings-results [] 
-  [:div
-    [:div "Spelling | Attempt | Correct | Time (ms)"] 
-    (map (fn [spelling attempt] 
-           [:div {:key spelling} spelling " | " (:spelling attempt) " | " (str (= spelling (:spelling attempt)) " | " (time/in-millis (:time attempt)))]) 
-         @spellings 
-         @spelling-attempts)])
+  [:table 
+    [:thead [:tr [:th "Spelling"] [:th "Attempt"] [:th "Correct"] [:th "Time (ms)"]]]
+    [:tbody 
+      (map (fn [spelling attempt] 
+             [:tr 
+              {:key spelling}
+              [:td spelling] [:td (:spelling attempt)] [:td (str (= spelling (:spelling attempt)))] [:td (time/in-millis (:time attempt))]])  
+           @spellings 
+           @spelling-attempts)]])
 
 (defn render-app []
   [:div
