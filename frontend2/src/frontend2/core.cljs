@@ -9,7 +9,6 @@
 (enable-console-print!)
 
 ;; define your app data so that it doesn't get over-written on reload
-
 (defonce spelling-input (r/atom ""))
 (defonce spelling-started-time (r/atom nil))
 (defonce spellings (r/atom []))
@@ -41,7 +40,11 @@
        [:input {:type "text"
                 :value @spelling-input
                 :onChange (fn [e]
-                              (update-text (.. e -target -value)))}]
+                              (update-text (.. e -target -value)))
+                :onKeyPress (fn [e] 
+                              (if (= (.. e -key) "Enter") 
+                                 (record-spelling-attempt)
+                                 true))}]
        [:input {:type "button"
                 :value "Next"
                 :onClick record-spelling-attempt}]])
@@ -63,8 +66,8 @@
    (if (empty? @spellings)
      [:div [:p "Loading spellings"]]
      (if (>= @spelling-index (count @spellings))
-       (spellings-results)
-       (spelling-input-form)))]) 
+       [spellings-results]
+       [spelling-input-form]))]) 
 
 (load-spellings)
 (r/render-component [render-app]
