@@ -16,12 +16,22 @@
 (defonce spelling-index (r/atom 0))
 (defonce current-spelling (ratom/reaction (get @spellings @spelling-index)))
 
+(defn speak [text]
+  (let [utterance (js/SpeechSynthesisUtterance.)]
+    (doto utterance
+      (aset "text" text))
+    (.speak (.-speechSynthesis js/window) utterance)))
+
+(defn speak-current-spelling []
+  (if (not (nil? @current-spelling))
+    (speak @current-spelling))) 
+
 (defn load-spellings [] 
   (go (let [response (<! (http/get "http://localhost:5000/spellings"
                                     {:with-credentials? false}))]
-        (do
-          (reset! spellings (:body response))
-          (reset! spelling-started-time (time/now))))))
+        (reset! spellings (:body response))
+        (reset! spelling-started-time (time/now))
+        (speak-current-spelling))))
 
 (defn update-text [text]
   (reset! spelling-input text))
@@ -32,7 +42,8 @@
       (swap! spelling-attempts conj {:spelling @spelling-input :time spelling-time}))
     (swap! spelling-index inc)
     (reset! spelling-input "")
-    (reset! spelling-started-time (time/now)))) 
+    (reset! spelling-started-time (time/now))
+    (speak-current-spelling))) 
 
 (defn spelling-input-form []
      [:div 
