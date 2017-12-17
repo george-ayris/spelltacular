@@ -27,7 +27,7 @@
     (speak @current-spelling))) 
 
 (defn load-spellings [] 
-  (go (let [response (<! (http/get "http://localhost:5000/spellings"
+  (go (let [response (<! (http/get "http://localhost:3000/spellings"
                                     {:with-credentials? false}))]
         (reset! spellings (:body response))
         (reset! spelling-started-time (time/now))
@@ -45,6 +45,14 @@
     (reset! spelling-started-time (time/now))
     (speak-current-spelling))) 
 
+(defn start-again []
+  (do
+    (reset! spellings [])
+    (load-spellings)
+    (reset! spelling-input "")
+    (reset! spelling-index 0)
+    (reset! spelling-attempts [])))
+
 (defn spelling-input-form []
      [:div 
        [:p @current-spelling]
@@ -61,15 +69,19 @@
                 :onClick record-spelling-attempt}]])
 
 (defn spellings-results [] 
-  [:table 
-    [:thead [:tr [:th "Spelling"] [:th "Attempt"] [:th "Correct"] [:th "Time (ms)"]]]
-    [:tbody 
-      (map (fn [spelling attempt] 
-             [:tr 
-              {:key spelling}
-              [:td spelling] [:td (:spelling attempt)] [:td (str (= spelling (:spelling attempt)))] [:td (time/in-millis (:time attempt))]])  
-           @spellings 
-           @spelling-attempts)]])
+  [:div 
+    [:table 
+      [:thead [:tr [:th "Spelling"] [:th "Attempt"] [:th "Correct"] [:th "Time (ms)"]]]
+      [:tbody 
+        (map (fn [spelling attempt] 
+               [:tr 
+                {:key spelling}
+                [:td spelling] [:td (:spelling attempt)] [:td (str (= spelling (:spelling attempt)))] [:td (time/in-millis (:time attempt))]])  
+             @spellings 
+             @spelling-attempts)]]
+    [:input {:type "button"
+             :value "Start again"
+             :onClick start-again}]])
 
 (defn render-app []
   [:div

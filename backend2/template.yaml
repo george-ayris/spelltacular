@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Spelltacular API 
+
+Resources:
+
+  ApiGetSpellings:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: spellings-handler.handler
+      Runtime: python3.6
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /spellings
+            Method: get
