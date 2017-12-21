@@ -6,7 +6,9 @@ def handler(event, context):
     
     response = {
         'statusCode': 200,
-        'headers': {},
+        'headers': {
+            'Access-Control-Allow-Origin': '*' # This should probably be restricted
+        },
         'body': json.dumps(['accident', 'actual', 'address', 'answer'])
     }
     return response
