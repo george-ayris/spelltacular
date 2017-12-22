@@ -1,0 +1,5 @@
+{
+ "ApiGetSpellings": {
+  "DB_CONNECTION_STRING": "dbname=spelltacular user=postgres password=Password123 host=docker.for.mac.localhost port=5432"
+ }
+}

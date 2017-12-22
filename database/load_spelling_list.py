@@ -21,6 +21,7 @@ if len(sys.argv) > 2:
 else:
     connection_string = "dbname=spelltacular user=postgres password=Password123 host=localhost port=5432"
 
+print(connection_string, type(connection_string))
 conn = psycopg2.connect(connection_string)
 cursor = conn.cursor()
 

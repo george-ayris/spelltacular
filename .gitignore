@@ -3,4 +3,5 @@ __pycache__
 frontend/target
 .DS_Store
 env/
+dist/
 

@@ -9,6 +9,9 @@ Resources:
     Properties:
       Handler: spellings-handler.handler
       Runtime: python3.6
+      Environment:
+        Variables:
+          DB_CONNECTION_STRING:
       Events:
         Api:
           Type: Api
