@@ -1,0 +1,4 @@
+GRANT CONNECT ON DATABASE spelltacular TO lambda;
+GRANT USAGE ON SCHEMA spelltacular TO lambda;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA spelltacular TO lambda;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA spelltacular TO lambda;

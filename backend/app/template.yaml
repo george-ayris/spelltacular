@@ -11,10 +11,25 @@ Resources:
       Runtime: python3.6
       Environment:
         Variables:
-          DB_CONNECTION_STRING:
+          DB_CONNECTION_STRING: 
+            Ref: PostgresConnectionString
       Events:
         Api:
           Type: Api
           Properties:
             Path: /spellings
             Method: get
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-a3440ed8
+        SubnetIds:
+          - subnet-a7dcd8c0
+
+
+Parameters:
+  PostgresConnectionString:
+    Type: String
+    NoEcho: true
