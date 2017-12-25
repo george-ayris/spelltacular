@@ -50,7 +50,7 @@
                ;; lein cljsbuild once min
                {:id "min"
                 :source-paths ["src"]
-                :compiler {:output-to "resources/public/js/compiled/frontend2.js"
+                :compiler {:output-to "dist/js/compiled/frontend2.js"
                            :main frontend2.core
                            :optimizations :advanced
                            :pretty-print false}}]}
