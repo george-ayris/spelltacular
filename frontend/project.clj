@@ -51,8 +51,13 @@
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "dist/js/compiled/frontend2.js"
+                           :output-dir "dist/js/compiled"
                            :main frontend2.core
                            :optimizations :advanced
+                           ;;:source-map "dist/js/compiled/frontend2.js.map"
+                           :closure-defines {frontend2.core/api-uri "https://q5a0pq16o1.execute-api.eu-west-1.amazonaws.com/Prod"}
+                           :infer-externs true
+                           :externs ["externs.js"]
                            :pretty-print false}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"

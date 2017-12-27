@@ -7,8 +7,8 @@
               [cljs-time.core :as time]))
 
 (enable-console-print!)
+(goog-define api-uri "http://localhost:3000")
 
-;; define your app data so that it doesn't get over-written on reload
 (defonce spelling-input (r/atom ""))
 (defonce spelling-started-time (r/atom nil))
 (defonce spellings (r/atom []))
@@ -20,14 +20,14 @@
   (let [utterance (js/SpeechSynthesisUtterance.)]
     (doto utterance
       (aset "text" text))
-    (.speak (.-speechSynthesis js/window) utterance)))
+    (.speak (aget js/window "speechSynthesis") utterance)))
 
 (defn speak-current-spelling []
   (if (not (nil? @current-spelling))
     (speak @current-spelling))) 
 
 (defn load-spellings [] 
-  (go (let [response (<! (http/get "http://localhost:3000/spellings"
+  (go (let [response (<! (http/get (str api-uri "/spellings")
                                     {:with-credentials? false}))]
         (reset! spellings (:body response))
         (reset! spelling-started-time (time/now))
@@ -96,6 +96,7 @@
 (r/render-component [render-app]
                           (. js/document (getElementById "app")))
 
+;; should move to dev file
 (defn on-js-reload []
   (do 
     (reset! spelling-index 0)
