@@ -4,9 +4,11 @@
               [reagent.ratom :as ratom]
               [cljs-http.client :as http]
               [cljs.core.async :refer [<!]]
-              [cljs-time.core :as time]))
+              [cljs-time.core :as time]
+              [clojure.string :as string]))
 
 (enable-console-print!)
+(set! *warn-on-infer* true)
 (goog-define api-uri "http://localhost:3000")
 
 (defonce spelling-input (r/atom ""))
@@ -17,10 +19,8 @@
 (defonce current-spelling (ratom/reaction (get @spellings @spelling-index)))
 
 (defn speak [text]
-  (let [utterance (js/SpeechSynthesisUtterance.)]
-    (doto utterance
-      (aset "text" text))
-    (.speak (aget js/window "speechSynthesis") utterance)))
+  (let [utterance (js/SpeechSynthesisUtterance. text)]
+    (.speak (.-speechSynthesis js/window) utterance)))
 
 (defn speak-current-spelling []
   (if (not (nil? @current-spelling))
@@ -53,6 +53,9 @@
     (reset! spelling-index 0)
     (reset! spelling-attempts [])))
 
+(defn is-spelling-correct [spelling attempt]
+  (= spelling (string/trim attempt))) ;; should this also be case-insensitive?
+
 (defn spelling-input-form []
      [:div 
        [:p @current-spelling]
@@ -76,7 +79,7 @@
         (map (fn [spelling attempt] 
                [:tr 
                 {:key spelling}
-                [:td spelling] [:td (:spelling attempt)] [:td (str (= spelling (:spelling attempt)))] [:td (time/in-millis (:time attempt))]])  
+                [:td spelling] [:td (:spelling attempt)] [:td (str (is-spelling-correct spelling (:spelling attempt)))] [:td (time/in-millis (:time attempt))]])  
              @spellings 
              @spelling-attempts)]]
     [:input {:type "button"
