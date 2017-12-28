@@ -28,6 +28,30 @@ Resources:
         SubnetIds:
           - subnet-a7dcd8c0
 
+  ApiGetSpellingLists:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: spelling-lists-handler.handler
+      Runtime: python3.6
+      Environment:
+        Variables:
+          DB_CONNECTION_STRING: 
+            Ref: PostgresConnectionString
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /spelling-lists
+            Method: get
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-a3440ed8
+        SubnetIds:
+          - subnet-a7dcd8c0
+
 
 Parameters:
   PostgresConnectionString:
