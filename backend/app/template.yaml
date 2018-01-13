@@ -86,6 +86,8 @@ Resources:
         paths:
           "/spellings":
             get:
+              security:
+              - cognitoAuthorizer: []
               x-amazon-apigateway-integration:
                 type: AWS_PROXY
                 httpMethod: POST
@@ -93,11 +95,23 @@ Resources:
                   Fn::Sub: "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/${ApiGetSpellings.Arn}/invocations"
           "/spelling-lists":
             get:
+              security:
+              - cognitoAuthorizer: []
               x-amazon-apigateway-integration:
                 type: AWS_PROXY
                 httpMethod: POST
                 uri:
                   Fn::Sub: "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/${ApiGetSpellingLists.Arn}/invocations"
+        securityDefinitions:
+          cognitoAuthorizer:
+            type: apiKey
+            name: Authorization
+            in: header
+            x-amazon-apigateway-authtype: coginito_user_pools
+            x-amazon-apigateway-authorizer:
+              providerARNs:
+              - Fn::Sub: "arn:aws:cognito-idp:eu-west-1:863487117295:userpool/eu-west-1_LDXnJP6z8"
+              type: cognito_user_pools
 
 Parameters:
   PostgresConnectionString:
