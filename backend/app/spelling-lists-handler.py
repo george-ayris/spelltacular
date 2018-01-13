@@ -4,6 +4,19 @@ import os
 
 
 def handler(event, context):
+    try:
+        claims = event['requestContext']['authorizer']['claims']
+        print("User", claims['cognito:username']) 
+    except KeyError:
+        print("No auth information")
+        return {
+            'statusCode': 403,
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
+
     connection_string = os.environ['DB_CONNECTION_STRING']
     conn = psycopg2.connect(connection_string)
     cursor = conn.cursor()

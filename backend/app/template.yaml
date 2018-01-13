@@ -19,14 +19,25 @@ Resources:
           Properties:
             Path: /spellings
             Method: get
+            RestApiId: ApiGateway
       Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSLambdaVPCAccessExecutionRole
+      - AWSLambdaBasicExecutionRole
+      - AWSLambdaVPCAccessExecutionRole
       VpcConfig:
         SecurityGroupIds:
-          - sg-a3440ed8
+        - sg-a3440ed8
         SubnetIds:
-          - subnet-a7dcd8c0
+        - subnet-a7dcd8c0
+
+  PermissionsGetSpellings:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+    - ApiGateway
+    - ApiGetSpellings
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ApiGetSpellings
+      Principal: apigateway.amazonaws.com
 
   ApiGetSpellingLists:
     Type: AWS::Serverless::Function
@@ -43,15 +54,50 @@ Resources:
           Properties:
             Path: /spelling-lists
             Method: get
+            RestApiId: ApiGateway
       Policies:
-        - AWSLambdaBasicExecutionRole
-        - AWSLambdaVPCAccessExecutionRole
+      - AWSLambdaBasicExecutionRole
+      - AWSLambdaVPCAccessExecutionRole
       VpcConfig:
         SecurityGroupIds:
-          - sg-a3440ed8
+        - sg-a3440ed8
         SubnetIds:
-          - subnet-a7dcd8c0
+        - subnet-a7dcd8c0
 
+  PermissionsGetSpellingLists:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+    - ApiGateway
+    - ApiGetSpellingLists
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ApiGetSpellingLists
+      Principal: apigateway.amazonaws.com
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          version: 1.0
+          title: "spelltacular-apigateway"
+        paths:
+          "/spellings":
+            get:
+              x-amazon-apigateway-integration:
+                type: AWS_PROXY
+                httpMethod: POST
+                uri: 
+                  Fn::Sub: "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/${ApiGetSpellings.Arn}/invocations"
+          "/spelling-lists":
+            get:
+              x-amazon-apigateway-integration:
+                type: AWS_PROXY
+                httpMethod: POST
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:eu-west-1:lambda:path/2015-03-31/functions/${ApiGetSpellingLists.Arn}/invocations"
 
 Parameters:
   PostgresConnectionString:
