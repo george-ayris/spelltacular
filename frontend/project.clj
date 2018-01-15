@@ -57,7 +57,9 @@
                            ;;:source-map "dist/js/compiled/frontend.js.map"
                            :closure-defines {frontend.core/api-uri "https://uydv0xk8qd.execute-api.eu-west-1.amazonaws.com/prod"}
                            :infer-externs true
-                           :externs ["externs.js"]
+                           :externs ["externs/externs.js"
+                                     "externs/aws-cognito-sdk.externs.js"
+                                     "externs/amazon-cognito-identity.externs.js"]
                            :pretty-print false}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"

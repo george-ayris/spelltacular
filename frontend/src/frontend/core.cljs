@@ -7,6 +7,10 @@
               [cljs-time.core :as time]
               [clojure.string :as string]))
 
+(def CognitoUserPool (-> js/AmazonCognitoIdentity .-CognitoUserPool))
+(def CognitoUser (-> js/AmazonCognitoIdentity .-CognitoUser))
+(def AuthenticationDetails (-> js/AmazonCognitoIdentity .-AuthenticationDetails))
+
 (enable-console-print!)
 (set! *warn-on-infer* true)
 (goog-define api-uri "http://localhost:3000")
@@ -17,6 +21,17 @@
 (defonce spelling-attempts (r/atom []))
 (defonce spelling-index (r/atom 0))
 (defonce current-spelling (ratom/reaction (get @spellings @spelling-index)))
+
+(defn sign-in []
+  (let [username "george"
+        password "P@ssword1"
+        user (new CognitoUser (clj->js {:Username username 
+                                        :Pool (new CognitoUserPool (clj->js {:UserPoolId "eu-west-1_LDXnJP6z8" :ClientId "1vfok997e0lm1lfo429ubnuu0o"}))}))
+        auth-details (new AuthenticationDetails (clj->js {:Username username :Password password}))]
+    (.authenticateUser user auth-details (clj->js {:onSuccess (fn [result] (.log js/console "Successful auth" result))
+                                                   :onFailure (fn [error] (.log js/console "Failed auth" error))
+                                                   :mfaRequired (fn [codeDeliveryDetails] (.log js/console "MFA required" codeDeliveryDetails))})))) 
+
 
 (defn speak [text]
   (let [utterance (js/SpeechSynthesisUtterance. text)]
@@ -95,6 +110,7 @@
        [spellings-results]
        [spelling-input-form]))]) 
 
+(sign-in)
 (load-spellings)
 (r/render-component [render-app]
                           (. js/document (getElementById "app")))
