@@ -1,4 +1,4 @@
-(defproject frontend2 "0.1.0-SNAPSHOT"
+(defproject frontend "0.1.0-SNAPSHOT"
   :description "FIXME: write this!"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -30,16 +30,16 @@
                 ;; The presence of a :figwheel configuration here
                 ;; will cause figwheel to inject the figwheel client
                 ;; into your build
-                :figwheel {:on-jsload "frontend2.core/on-js-reload"
+                :figwheel {:on-jsload "frontend.core/on-js-reload"
                            ;; :open-urls will pop open your application
                            ;; in the default browser once Figwheel has
                            ;; started and compiled your application.
                            ;; Comment this out once it no longer serves you.
                            :open-urls ["http://localhost:3449/index.html"]}
 
-                :compiler {:main frontend2.core
+                :compiler {:main frontend.core
                            :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/frontend2.js"
+                           :output-to "resources/public/js/compiled/frontend.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
                            ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
@@ -50,12 +50,12 @@
                ;; lein cljsbuild once min
                {:id "min"
                 :source-paths ["src"]
-                :compiler {:output-to "dist/js/compiled/frontend2.js"
+                :compiler {:output-to "dist/js/compiled/frontend.js"
                            :output-dir "dist/js/compiled"
-                           :main frontend2.core
+                           :main frontend.core
                            :optimizations :advanced
-                           ;;:source-map "dist/js/compiled/frontend2.js.map"
-                           :closure-defines {frontend2.core/api-uri "https://q5a0pq16o1.execute-api.eu-west-1.amazonaws.com/Prod"}
+                           ;;:source-map "dist/js/compiled/frontend.js.map"
+                           :closure-defines {frontend.core/api-uri "https://uydv0xk8qd.execute-api.eu-west-1.amazonaws.com/prod"}
                            :infer-externs true
                            :externs ["externs.js"]
                            :pretty-print false}}]}

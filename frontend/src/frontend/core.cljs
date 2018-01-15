@@ -1,4 +1,4 @@
-(ns frontend2.core
+(ns frontend.core
     (:require-macros [cljs.core.async.macros :refer [go]])
     (:require [reagent.core :as r]
               [reagent.ratom :as ratom]
